@@ -43,6 +43,7 @@ instance Controller PostsController where
         let post = newRecord @Post
         post
             |> buildPost
+            |> set #author currentUser.email
             |> ifValid \case
                 Left post -> render NewView { .. } 
                 Right post -> do

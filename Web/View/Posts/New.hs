@@ -19,6 +19,7 @@ renderForm :: Post -> Html
 renderForm post = formFor post [hsx|
     {(textField #title)}
     {(textareaField #body) {helpText = "You can use Markdown here"} }
+    {(hiddenField #author)}
     {submitButton}
 
 |]

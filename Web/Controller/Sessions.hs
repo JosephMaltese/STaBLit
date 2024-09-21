@@ -9,4 +9,6 @@ instance Controller SessionsController where
     action CreateSessionAction = Sessions.createSessionAction @User
     action DeleteSessionAction = Sessions.deleteSessionAction @User
 
-instance Sessions.SessionsControllerConfig User
+instance Sessions.SessionsControllerConfig User where
+    afterLoginRedirectPath = pathTo PostsAction
+    afterLogoutRedirectPath = "/"
