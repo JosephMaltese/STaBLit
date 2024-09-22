@@ -18,6 +18,8 @@ data PostsController
     | EditPostAction { postId :: !(Id Post) }
     | UpdatePostAction { postId :: !(Id Post) }
     | DeletePostAction { postId :: !(Id Post) }
+    | LikePostAction  { postId :: !(Id Post) }
+    | DislikePostAction  { postId :: !(Id Post) }
     deriving (Eq, Show, Data)
 
 data CommentsController

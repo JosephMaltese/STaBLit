@@ -7,6 +7,11 @@ import Web.View.Users.Edit
 import Web.View.Users.Show
 import Application.Script.Prelude (setSuccessMessage)
 
+
+
+
+import qualified IHP.AuthSupport.Controller.Sessions as Sessions
+
 instance Controller UsersController where
     action UsersAction = do
         users <- query @User |> fetch
@@ -53,11 +58,17 @@ instance Controller UsersController where
                     redirectTo EditUserAction { .. }
 
 
+
+    action EditUserAction { userId } = do
+        user <- fetch userId
+        render EditView { .. }
+
+
     action CreateUserAction = do
         let user = newRecord @User
         let passwordConfirmation = param @Text "passwordConfirmation"
         user
-            |> fill @["email", "passwordHash"]
+            |> fill @["email", "username", "passwordHash"]
             |> validateField #passwordHash (isEqual passwordConfirmation |> withCustomErrorMessage "Passwords don't match.")
             |> validateField #passwordHash nonEmpty
             |> validateField #email isEmail
@@ -70,7 +81,7 @@ instance Controller UsersController where
                         |> set #passwordHash hashed
                         |> createRecord
                     setSuccessMessage "You have registered successfully"
-                    redirectTo CreateSessionAction
+                    redirectToPath "/"
 
     action DeleteUserAction { userId } = do
         user <- fetch userId
@@ -79,4 +90,4 @@ instance Controller UsersController where
         redirectTo UsersAction
 
 buildUser user = user
-    |> fill @'["email", "passwordHash", "failedLoginAttempts"]
+    |> fill @'["email", "username", "passwordHash", "failedLoginAttempts"]

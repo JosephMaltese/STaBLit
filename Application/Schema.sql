@@ -4,7 +4,11 @@ CREATE TABLE posts (
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-    author TEXT NOT NULL
+    author TEXT NOT NULL,
+    likecount INT DEFAULT 0 NOT NULL,
+    dislikecount INT DEFAULT 0 NOT NULL,
+    likes UUID[] DEFAULT '{}' NOT NULL,
+    dislikes UUID[] DEFAULT '{}' NOT NULL
 );
 CREATE TABLE comments (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
@@ -19,6 +23,7 @@ CREATE TABLE users (
     email TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     locked_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
-    failed_login_attempts SMALLINT DEFAULT 0 NOT NULL
+    failed_login_attempts SMALLINT DEFAULT 0 NOT NULL,
+    username TEXT DEFAULT '' NOT NULL
 );
 ALTER TABLE comments ADD CONSTRAINT comments_ref_post_id FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE NO ACTION;
