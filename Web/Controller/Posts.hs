@@ -63,8 +63,8 @@ instance Controller PostsController where
         ensureIsUser
         post <- fetch postId
 
-        let id = currentUserId
-        let userId = get #id id
+        let id :: Id' "users" = currentUserId
+        let userId = getuuid id
         let hasLiked = userId `elem` post.likes
         let hasDisliked = userId `elem` post.dislikes
 
@@ -87,7 +87,8 @@ instance Controller PostsController where
         ensureIsUser
         post <- fetch postId
 
-        let userId = get #id currentUser.id
+        let id = currentUserId
+        let userId = getuuid id
         let hasLiked = userId `elem` post.likes
         let hasDisliked = userId `elem` post.dislikes
 
@@ -133,3 +134,8 @@ updatePost postId likes dislikes likeCount dislikeCount = do
         |> updateRecord
 
     setSuccessMessage "Post liked/disliked"
+
+getuuid :: Id' "users" -> UUID
+getuuid id = do
+    case id of
+        Id uuid -> uuid
