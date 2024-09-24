@@ -59,55 +59,49 @@ instance Controller PostsController where
         setSuccessMessage "Post deleted"
         redirectTo PostsAction
 
-
     action LikePostAction { postId } = do
         ensureIsUser
-        post :: Post <- fetch postId
+        post <- fetch postId
 
-        let userId = currentUser.id
+        let id = currentUserId
+        let userId = get #id id
         let hasLiked = userId `elem` post.likes
         let hasDisliked = userId `elem` post.dislikes
 
-        let updatedLikes = if hasLiked
+        let likes = if hasLiked
             then filter (/= userId) post.likes
             else (userId : post.likes)
-        let updatedDislikes = if hasDisliked 
+        let dislikes = if hasDisliked 
             then filter (/= userId) post.dislikes
             else post.dislikes
         
-        let likeCount = length updatedLikes
-        let dislikeCount = length updatedDislikes
+        let likeCount = length likes
+        let dislikeCount = length dislikes
 
-        post
-            |> set #likes updatedLikes
-            |> set #dislikes updatedDislikes
-            |> set #likecount likeCount
-            |> set #likecount dislikeCount
-            |> updateRecord
+        updatePost postId likes dislikes likeCount dislikeCount
+
+
+
 
     action DislikePostAction { postId } = do
         ensureIsUser
-        post :: Post <- fetch postId
-        let userId = currentUser.id
+        post <- fetch postId
+
+        let userId = get #id currentUser.id
         let hasLiked = userId `elem` post.likes
         let hasDisliked = userId `elem` post.dislikes
 
-        let updatedLikes = if hasLiked
+        let likes = if hasLiked
             then filter (/= userId) post.likes
             else post.likes
-        let updatedDislikes = if hasDisliked 
+        let dislikes = if hasDisliked 
             then filter (/= userId) post.dislikes
             else (userId : post.dislikes)
             
-        let likeCount = length updatedLikes
-        let dislikeCount = length updatedDislikes
+        let likeCount = length likes
+        let dislikeCount = length dislikes
 
-        post
-            |> set #likes updatedLikes
-            |> set #dislikes updatedDislikes
-            |> set #likecount likeCount
-            |> set #likecount dislikeCount
-            |> updateRecord
+        updatePost postId likes dislikes likeCount dislikeCount
     
 
 
@@ -125,3 +119,17 @@ isMarkdown text =
     case MMark.parse "" text of
         Left _ -> Failure "Please provide valid Markdown"
         Right _ -> Success
+
+
+
+
+updatePost postId likes dislikes likeCount dislikeCount = do
+    post :: Post <- fetch postId
+    post
+        |> set #likes likes
+        |> set #dislikes dislikes
+        |> set #likecount likeCount
+        |> set #dislikecount dislikeCount
+        |> updateRecord
+
+    setSuccessMessage "Post liked/disliked"
