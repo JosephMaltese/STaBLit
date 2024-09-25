@@ -12,6 +12,8 @@ instance View ShowView where
         <p>{post.body |> renderMarkdown}</p>
 
         <a href={NewCommentAction post.id}>Add Comment</a>
+        <h2 style="margin-top: 2rem;">Replies</h2>
+        <hr>
         <div>{forEach post.comments renderComment}</div>
 
     |]

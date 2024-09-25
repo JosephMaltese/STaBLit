@@ -46,6 +46,11 @@ instance Controller PostsController where
         post
             |> buildPost
             |> set #author currentUser.username
+            --- Optional --- UPDATE: SEEMS TO WORK FOR NOW
+            |> set #likecount 0
+            |> set #dislikecount 0
+            |> set #likes []
+            |> set #dislikes []
             |> ifValid \case
                 Left post -> render NewView { .. } 
                 Right post -> do
@@ -79,6 +84,8 @@ instance Controller PostsController where
         let dislikeCount = length dislikes
 
         updatePost postId likes dislikes likeCount dislikeCount
+        redirectTo PostsAction
+
 
 
 
@@ -103,6 +110,7 @@ instance Controller PostsController where
         let dislikeCount = length dislikes
 
         updatePost postId likes dislikes likeCount dislikeCount
+        redirectTo PostsAction
     
 
 

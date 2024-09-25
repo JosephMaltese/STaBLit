@@ -14,6 +14,7 @@ instance Controller CommentsController where
     action NewCommentAction { postId } = do
         let comment = newRecord
                 |> set #postId postId
+                |> set #author currentUser.username
         post <- fetch postId
         render NewView { .. }
 
@@ -56,4 +57,5 @@ instance Controller CommentsController where
         redirectTo CommentsAction
 
 buildComment comment = comment
-    |> fill @'["postId", "author", "body"]
+    |> fill @'["postId", "body"]
+    |> set #author currentUser.username
