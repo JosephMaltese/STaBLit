@@ -86,12 +86,11 @@ renderDislikeButton postId = [hsx|
 
 
 renderReactionButtons postId = [hsx|
-    <form method="POST" action={CreateReactionAction postId }>
-
-        <button type="submit" name="emoji" value="1">😊</button>
-        <button type="submit" name="emoji" value="2">👍</button>
-        <button type="submit" name="emoji" value="3">❤️</button>
-    </form>
+    <div>
+        <a name="emoji" href={CreateReactionAction postId "😊"}>😊</a>
+        <a name="emoji" href={CreateReactionAction postId "👍"}>👍</a>
+        <a name="emoji" href={CreateReactionAction postId "❤️"}>❤️</a>
+    </div>
 |]
 
 

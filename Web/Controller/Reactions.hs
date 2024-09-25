@@ -49,20 +49,14 @@ instance Controller ReactionsController where
                     redirectTo ReactionsAction
     --}
 
-    action CreateReactionAction {postId} = do
-        emoji <- param @Text "emoji"
-        userId <- currentUserId
-        let emojitext = case emoji of
-            "1" -> "😊"
-            "2" -> "👍"
-            "3" -> "❤️"
-            _ -> " "
-        let useruuid :: UUID = getuuid userId
-        let postuuid :: UUID = getuuid postId
+    action CreateReactionAction {postId, emoji} = do
+        let userId = currentUserId
+        let useruuid = getuseruuid userId
+        let postuuid :: UUID = getpostuuid postId
         let reaction = newRecord @Reaction
         reaction
-            |> set #postid postId
-            |> set #emoji emojitext
+            |> set #postid postuuid
+            |> set #emoji emoji
             |> set #userid useruuid
             |> createRecord
         setSuccessMessage "Reaction created"
@@ -80,7 +74,12 @@ buildReaction reaction = reaction
     |> fill @'["postid", "userid", "emoji"]
 
 
-getuuid :: Id' "users" -> UUID
-getuuid id = do
+getuseruuid :: Id' "users" -> UUID
+getuseruuid id = do
+    case id of
+        Id uuid -> uuid
+
+getpostuuid :: Id' "posts" -> UUID
+getpostuuid id = do
     case id of
         Id uuid -> uuid
