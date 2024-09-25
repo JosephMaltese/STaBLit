@@ -35,18 +35,14 @@ instance Controller ReactionsController where
                     reaction <- reaction |> updateRecord
                     setSuccessMessage "Reaction updated"
                     redirectTo EditReactionAction { .. }
-
+    
     {--
-    action CreateReactionAction = do
-        let reaction = newRecord @Reaction
-        reaction
-            |> buildReaction
-            |> ifValid \case
-                Left reaction -> render NewView { .. } 
-                Right reaction -> do
-                    reaction <- reaction |> createRecord
-                    setSuccessMessage "Reaction created"
-                    redirectTo ReactionsAction
+    action ShowAllReactionsAction { postId } = do
+        let postuuid = getpostuuid postId
+        reactions <- query @Reaction
+            |> filterWhere (#postid, postuuid)
+            |> fetch
+        redirectTo PostsAction
     --}
 
     action CreateReactionAction {postId, emoji} = do

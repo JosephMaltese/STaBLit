@@ -14,6 +14,7 @@ instance Controller PostsController where
         posts <- query @Post 
             |> orderByDesc #createdAt
             |> fetch
+        reactions <- query @Reaction |> fetch
         render IndexView { .. }
 
     action NewPostAction = do

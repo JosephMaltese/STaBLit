@@ -1,7 +1,9 @@
 module Web.View.Posts.Index where
 import Web.View.Prelude
 
-data IndexView = IndexView { posts :: [Post] }
+
+
+data IndexView = IndexView { posts :: [Post], reactions:: [Reaction] }
 
 instance View IndexView where
     html IndexView { .. } = [hsx|
@@ -18,7 +20,7 @@ instance View IndexView where
         </div>
         <h1>Home<a href={pathTo NewPostAction} class="btn btn-primary ms-4">+ New Post</a></h1>
         <hr>
-        <div>{forEach posts renderPost}</div>
+        <div>{forEach posts ( \p -> renderPost p reactions)}</div>
         </body>
         |]
         where
@@ -26,9 +28,9 @@ instance View IndexView where
                 [ breadcrumbLink "Posts" PostsAction
                 ]
 
-renderPost :: Post -> Html
-renderPost post = [hsx|
-    <div>
+renderPost :: Post -> [Reaction] -> Html
+renderPost post reactions = [hsx|
+    <div style="margin-bottom: 2rem;">
             <div style="display: flex; flex-direction: row; justify-content: space-between;">
                 <p>Author: {post.author}</p>
                 {renderEditDeleteButtons post}
@@ -53,9 +55,12 @@ renderPost post = [hsx|
                 </div>
 
                 <div class="reactions-display">
-                    {renderReactions post.id}
+                    {renderReactions post reactions}
                 </div>
+
+                
             </div>
+            <hr>
     </div>
 |]
 
@@ -84,7 +89,7 @@ renderDislikeButton postId = [hsx|
     </form>
 |]
 
-
+{--
 renderReactionButtons postId = [hsx|
     <div>
         <a name="emoji" href={CreateReactionAction postId "😊"}>😊</a>
@@ -92,19 +97,52 @@ renderReactionButtons postId = [hsx|
         <a name="emoji" href={CreateReactionAction postId "❤️"}>❤️</a>
     </div>
 |]
+--}
+
+renderReactionButtons postId = [hsx|
+    <div style="display: flex; flex-direction: row;">
+        <form method="POST" action={CreateReactionAction postId "😊"}>
+            <button type="submit" style="margin-right: 1rem; margin-left: 1rem">😊</button>
+        </form>
+        <form method="POST" action={CreateReactionAction postId "👍"}>
+            <button type="submit" style="margin-right: 1rem; margin-left: 1rem">👍</button>
+        </form>
+        <form method="POST" action={CreateReactionAction postId "❤️"}>
+            <button type="submit" style="margin-right: 1rem; margin-left: 1rem">❤️</button>
+        </form>
+    </div>
+|]
 
 
+{--
+renderReactions :: Post -> [Reaction] -> Html
+renderReactions post reactions = do
+    let relevantreactions = filter (\reaction -> (touuid (get #postid reaction)) == (touuid (get #id post))) reactions
+    [hsx|
+    <div>
+        {length reactions}
+    </div>
+|]
+--}
 
-renderReactions postId = do
-    reactions <- query @Reaction
-        |> filterWhere (#postid, postId)
-        |> fetch
-    [hsx | 
-        <div class="reactions:">{forEach reactions renderReaction}</div> 
-    |]
+renderReactions :: Post -> [Reaction] -> Html
+renderReactions post reactions = do
+    [hsx|
+    <div>
+    </div>
+|]
 
 renderReaction reaction = do
-    [hsx | 
-    <span class="reaction">{reaction.emoji}</span>
-    |]
+    [hsx|
+    <div>
+        <span>{reaction.text}</span>
+    </div>
+|]
    
+
+{--
+touuid :: Id' "posts" -> UUID
+touuid postid = do
+    case postid of
+        Id uuid -> uuid
+--}
