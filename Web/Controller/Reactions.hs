@@ -35,26 +35,30 @@ instance Controller ReactionsController where
                     reaction <- reaction |> updateRecord
                     setSuccessMessage "Reaction updated"
                     redirectTo EditReactionAction { .. }
-    
-    {--
-    action ShowAllReactionsAction { postId } = do
-        let postuuid = getpostuuid postId
-        reactions <- query @Reaction
-            |> filterWhere (#postid, postuuid)
-            |> fetch
-        redirectTo PostsAction
-    --}
 
-    action CreateReactionAction {postId, emoji} = do
+
+    action CreateReactionAction { postId } = do
+        let emoji = param "emoji"
         let userId = currentUserId
         let useruuid = getuseruuid userId
         let postuuid :: UUID = getpostuuid postId
-        let reaction = newRecord @Reaction
-        reaction
+
+        existingReaction <- query @Reaction
+            |> filterWhere (#userid, useruuid)
+            |> filterWhere (#postid, postuuid)
+            |> fetchOneOrNothing
+
+        case existingReaction of
+            Just reaction -> deleteRecord reaction
+            Nothing -> pure ()
+
+        let newReaction = newRecord @Reaction
+        newReaction
             |> set #postid postuuid
             |> set #emoji emoji
             |> set #userid useruuid
             |> createRecord
+            
         setSuccessMessage "Reaction created"
         redirectTo PostsAction
 

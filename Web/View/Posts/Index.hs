@@ -1,9 +1,8 @@
 module Web.View.Posts.Index where
 import Web.View.Prelude
 
-
-
-data IndexView = IndexView { posts :: [Post], reactions:: [Reaction] }
+-- data IndexView = IndexView { posts :: [Post] }
+data IndexView = IndexView { postsWithDetails :: [(Post, [Reaction], [Comment])] }
 
 instance View IndexView where
     html IndexView { .. } = [hsx|
@@ -20,7 +19,7 @@ instance View IndexView where
         </div>
         <h1>Home<a href={pathTo NewPostAction} class="btn btn-primary ms-4">+ New Post</a></h1>
         <hr>
-        <div>{forEach posts ( \p -> renderPost p reactions)}</div>
+        <div>{forEach postsWithDetails renderPost}</div>
         </body>
         |]
         where
@@ -28,11 +27,16 @@ instance View IndexView where
                 [ breadcrumbLink "Posts" PostsAction
                 ]
 
-renderPost :: Post -> [Reaction] -> Html
-renderPost post reactions = [hsx|
-    <div style="margin-bottom: 2rem;">
+renderPost :: (Post, [Reaction], [Comment]) -> Html
+renderPost postwithdetails = 
+    case postwithdetails of 
+        (post, reactions, comments) -> [hsx|
+    <div>
             <div style="display: flex; flex-direction: row; justify-content: space-between;">
-                <p>Author: {post.author}</p>
+                <div style="display: flex; flex-direction: row;">
+                    <p style="font-weight: bold;">Author: {post.author}</p>
+                    <p style="margin-left: 1rem;">{post.createdAt |> timeAgo}</p>
+                </div>
                 {renderEditDeleteButtons post}
             </div>
             <a href={ShowPostAction post.id} style="font-size: 1.5rem;">{post.title}</a>
@@ -50,19 +54,21 @@ renderPost post reactions = [hsx|
                     <p style="margin-top: 1rem;">Comment</p>
                 </a>
 
-                <div class="emoji-reactions">
-                    {renderReactionButtons post.id}
+                <div class="emoji-reactions" style="margin-left: 2rem;">
+                    {renderReactionButtons post.id reactions}
                 </div>
 
-                <div class="reactions-display">
-                    {renderReactions post reactions}
-                </div>
-
-                
             </div>
-            <hr>
+
+            <div>
+                <p style="font-weight: bold;">Replies:</p>
+                {renderComments comments}
+            </div>
+
+            <hr style="width: 90%; margin: auto; margin-bottom: 2rem;">
     </div>
 |]
+        _ -> mempty
 
 
 renderEditDeleteButtons :: Post -> Html
@@ -89,60 +95,47 @@ renderDislikeButton postId = [hsx|
     </form>
 |]
 
-{--
-renderReactionButtons postId = [hsx|
-    <div>
-        <a name="emoji" href={CreateReactionAction postId "😊"}>😊</a>
-        <a name="emoji" href={CreateReactionAction postId "👍"}>👍</a>
-        <a name="emoji" href={CreateReactionAction postId "❤️"}>❤️</a>
-    </div>
-|]
---}
-
-renderReactionButtons postId = [hsx|
-    <div style="display: flex; flex-direction: row;">
-        <form method="POST" action={CreateReactionAction postId "😊"}>
-            <button type="submit" style="margin-right: 1rem; margin-left: 1rem">😊</button>
-        </form>
-        <form method="POST" action={CreateReactionAction postId "👍"}>
-            <button type="submit" style="margin-right: 1rem; margin-left: 1rem">👍</button>
-        </form>
-        <form method="POST" action={CreateReactionAction postId "❤️"}>
-            <button type="submit" style="margin-right: 1rem; margin-left: 1rem">❤️</button>
-        </form>
-    </div>
+renderReactionButtons postId reactions = [hsx|
+    <form method="POST" action={CreateReactionAction postId}>
+        <button type="submit" name="emoji" value="😊" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "😊")}</span> 😊</button>
+        <button type="submit" name="emoji" value="👍" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "👍")}</span> 👍</button>
+        <button type="submit" name="emoji" value="❤️" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "❤️")}</span> ❤️</button>
+        <button type="submit" name="emoji" value="🤣" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "🤣")}</span> 🤣</button>
+    </form>
 |]
 
 
-{--
-renderReactions :: Post -> [Reaction] -> Html
-renderReactions post reactions = do
-    let relevantreactions = filter (\reaction -> (touuid (get #postid reaction)) == (touuid (get #id post))) reactions
-    [hsx|
-    <div>
-        {length reactions}
-    </div>
-|]
---}
 
-renderReactions :: Post -> [Reaction] -> Html
-renderReactions post reactions = do
-    [hsx|
-    <div>
-    </div>
+countreactions :: [Reaction] -> Text -> Int 
+countreactions reactions emoji = 
+    let relevantReactions = filter (\reaction -> get #emoji reaction == emoji) reactions
+    in length relevantReactions 
+    
+
+renderCount :: Int -> Html
+renderCount count = 
+    if count > 0
+    then [hsx| ({count}) |]
+    else mempty
+
+
+
+renderComments :: [Comment] -> Html
+renderComments comments = 
+    [hsx| 
+    {forEach comments renderComment}
+
 |]
 
-renderReaction reaction = do
-    [hsx|
-    <div>
-        <span>{reaction.text}</span>
+renderComment :: Comment -> Html
+renderComment comment = 
+    [hsx| 
+   <div style="margin-left: 3rem;">
+        <div style="display: flex; flex-direction: row; justify-content: space-between;">
+            <p style="font-weight: bold;">{comment.author}</p>
+            <p>{comment.createdAt |> timeAgo}</p>
+        </div>
+        <p>{comment.body}</p>
     </div>
-|]
-   
 
-{--
-touuid :: Id' "posts" -> UUID
-touuid postid = do
-    case postid of
-        Id uuid -> uuid
---}
+|]

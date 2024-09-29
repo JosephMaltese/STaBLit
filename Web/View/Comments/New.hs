@@ -7,7 +7,6 @@ data NewView = NewView { comment :: Comment
 
 instance View NewView where
     html NewView { .. } = [hsx|
-        {breadcrumb}
         <h1>New Comment for <q>{post.title}</q></h1>
         {renderForm comment}
     |]

@@ -57,7 +57,7 @@ data ReactionsController
     = ReactionsAction
     | NewReactionAction
     | ShowReactionAction { reactionId :: !(Id Reaction) }
-    | CreateReactionAction { postId :: !(Id Post), emoji :: Text }
+    | CreateReactionAction { postId :: !(Id Post) }
     | EditReactionAction { reactionId :: !(Id Reaction) }
     | UpdateReactionAction { reactionId :: !(Id Reaction) }
     | DeleteReactionAction { reactionId :: !(Id Reaction) }

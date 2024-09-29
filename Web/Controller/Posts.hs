@@ -11,11 +11,21 @@ import Web.View.Posts.Show
 instance Controller PostsController where
 
     action PostsAction = do
-        posts <- query @Post 
+        posts <- query @Post
             |> orderByDesc #createdAt
             |> fetch
-        reactions <- query @Reaction |> fetch
-        render IndexView { .. }
+        postsWithDetails <- forM posts \post -> do
+            let postid1 = (get #id post)
+            let postuuid = getpostuuid postid1
+            reactions <- query @Reaction
+                |> filterWhere (#postid, postuuid)
+                |> fetch
+            comments <- query @Comment
+                |> filterWhere (#postId, postid1)
+                |> fetch
+            pure (post, reactions, comments)
+        render IndexView { postsWithDetails }
+
 
     action NewPostAction = do
         let post = newRecord
@@ -146,5 +156,10 @@ updatePost postId likes dislikes likeCount dislikeCount = do
 
 getuuid :: Id' "users" -> UUID
 getuuid id = do
+    case id of
+        Id uuid -> uuid
+
+getpostuuid :: Id' "posts" -> UUID
+getpostuuid id = do
     case id of
         Id uuid -> uuid
