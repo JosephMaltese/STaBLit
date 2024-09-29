@@ -61,8 +61,7 @@ renderPost postwithdetails =
             </div>
 
             <div>
-                <p style="font-weight: bold;">Replies:</p>
-                {renderComments comments}
+                {renderComments (buildCommentTree None comments)}
             </div>
 
             <hr style="width: 90%; margin: auto; margin-bottom: 2rem;">
@@ -122,20 +121,37 @@ renderCount count =
 
 renderComments :: [Comment] -> Html
 renderComments comments = 
-    [hsx| 
-    {forEach comments renderComment}
+    if not (null comments)
+    then [hsx| 
+        <p style="font-weight: bold;">Replies:</p>
+        <div style="background-color: #B8B8B8; padding: 2rem;">
+            {forEach comments renderComment}
+        </div>
 
-|]
+    |]
+    else mempty
 
 renderComment :: Comment -> Html
 renderComment comment = 
     [hsx| 
-   <div style="margin-left: 3rem;">
-        <div style="display: flex; flex-direction: row; justify-content: space-between;">
+   <div style="margin-left: 2rem; background-color: #F0F0F0; padding: 1rem; margin-bottom: 1rem;">
+        <div style="display: flex; flex-direction: row;">
             <p style="font-weight: bold;">{comment.author}</p>
-            <p>{comment.createdAt |> timeAgo}</p>
+            <p style="margin-left: 1rem;">{comment.createdAt |> timeAgo}</p>
         </div>
         <p>{comment.body}</p>
+        <form method="POST" action={CreateCommentAction2 (comment.postid) }>
+            <input type="text" name="body" placeholder="Reply..." required />
+            <input type="hidden" name="parentId" value={get #id comment} />
+            <button type="submit">Reply</button>
+        </form>
+        {renderComments (getReplies comment)}
     </div>
 
 |]
+
+
+buildCommentTree :: Maybe (Id' "comments") -> [Comment] -> [Comment]
+buildCommentTree parentId comments = 
+    let replies = filter (\comment -> get #parentid comment == parentId) comments
+    in map (\reply -> reply { replies = buildCommentTree (Just (get #id reply)) comments }  ) replies

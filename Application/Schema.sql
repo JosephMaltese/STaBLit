@@ -15,7 +15,8 @@ CREATE TABLE comments (
     post_id UUID NOT NULL,
     author TEXT NOT NULL,
     body TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+    parentid UUID DEFAULT NULL
 );
 CREATE INDEX comments_post_id_index ON comments (post_id);
 CREATE TABLE users (
