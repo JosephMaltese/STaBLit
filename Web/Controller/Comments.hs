@@ -49,6 +49,20 @@ instance Controller CommentsController where
                     comment <- comment |> createRecord
                     setSuccessMessage "Comment created"
                     redirectTo ShowPostAction { postId = comment.postId }
+    
+    action CreateCommentAction2 { postId } = do
+        let bodyText = param "body"
+        let parentId = param "parentId"
+        let comment = newRecord @Comment
+        comment
+            |> set #postId postId
+            |> set #author currentUser.username
+            |> set #body bodyText
+            |> set #parentid (if isNothing parentId then Nothing else parentId )
+            |> createRecord
+        setSuccessMessage "Comment created"
+        redirectTo PostsAction
+
 
     action DeleteCommentAction { commentId } = do
         comment <- fetch commentId

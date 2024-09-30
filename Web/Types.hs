@@ -30,6 +30,7 @@ data CommentsController
     | EditCommentAction { commentId :: !(Id Comment) }
     | UpdateCommentAction { commentId :: !(Id Comment) }
     | DeleteCommentAction { commentId :: !(Id Comment) }
+    | CreateCommentAction2 { postId :: !(Id Post) }
     deriving (Eq, Show, Data)
 
 data SessionsController

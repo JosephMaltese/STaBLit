@@ -1,6 +1,8 @@
 module Web.View.Posts.Index where
 import Web.View.Prelude
 
+import Data.UUID (UUID, nil)
+
 -- data IndexView = IndexView { posts :: [Post] }
 data IndexView = IndexView { postsWithDetails :: [(Post, [Reaction], [Comment])] }
 
@@ -61,7 +63,7 @@ renderPost postwithdetails =
             </div>
 
             <div>
-                {renderComments (buildCommentTree None comments)}
+                {renderComments (buildCommentTree Nothing comments)}
             </div>
 
             <hr style="width: 90%; margin: auto; margin-bottom: 2rem;">
@@ -119,7 +121,7 @@ renderCount count =
 
 
 
-renderComments :: [Comment] -> Html
+renderComments :: [CommentWithReplies] -> Html
 renderComments comments = 
     if not (null comments)
     then [hsx| 
@@ -131,27 +133,52 @@ renderComments comments =
     |]
     else mempty
 
-renderComment :: Comment -> Html
-renderComment comment = 
+renderComment :: CommentWithReplies -> Html
+renderComment commentwithreplies = 
+    let actualcomment = comment commentwithreplies
+    in
     [hsx| 
-   <div style="margin-left: 2rem; background-color: #F0F0F0; padding: 1rem; margin-bottom: 1rem;">
+   <div style="margin-left: 2rem; background-color: #F0F0F0; padding: 1rem; margin-bottom: 1rem; width: 95%;">
         <div style="display: flex; flex-direction: row;">
-            <p style="font-weight: bold;">{comment.author}</p>
-            <p style="margin-left: 1rem;">{comment.createdAt |> timeAgo}</p>
+            <p style="font-weight: bold;">{actualcomment.author}</p>
+            <p style="margin-left: 1rem;">{actualcomment.createdAt |> timeAgo}</p>
         </div>
-        <p>{comment.body}</p>
-        <form method="POST" action={CreateCommentAction2 (comment.postid) }>
-            <input type="text" name="body" placeholder="Reply..." required />
-            <input type="hidden" name="parentId" value={get #id comment} />
-            <button type="submit">Reply</button>
+        <p>{actualcomment.body}</p>
+        <form method="POST" action={CreateCommentAction2 (actualcomment.postId) }>
+            <input type="text" style="border-radius: 10px; border-width: 0.1rem; padding: 0.2rem;" name="body" placeholder="Reply..." required />
+            <input type="hidden" name="parentId" value={get #id actualcomment} />
+            <button type="submit" class="btn btn-primary" style="margin-left: 1rem;">Reply</button>
         </form>
-        {renderComments (getReplies comment)}
+        {renderComments (replies commentwithreplies)}
     </div>
 
 |]
 
 
-buildCommentTree :: Maybe (Id' "comments") -> [Comment] -> [Comment]
-buildCommentTree parentId comments = 
-    let replies = filter (\comment -> get #parentid comment == parentId) comments
-    in map (\reply -> reply { replies = buildCommentTree (Just (get #id reply)) comments }  ) replies
+buildCommentTree :: Maybe (Id' "comments") -> [Comment] -> [CommentWithReplies]
+buildCommentTree parentId comments =
+    let replies = filter (\c -> touuid2 (get #parentid c) == touuid (toid parentId)) comments
+    in map (\reply -> CommentWithReplies reply (buildCommentTree (Just (get #id reply)) comments)) replies
+
+touuid :: Id' "comments" -> UUID
+touuid id = do
+    case id of
+        Id uuid -> uuid
+
+toid :: Maybe (Id' "comments") -> (Id' "comments")
+toid id = do
+    case id of
+        Just id1 -> id1
+        Nothing -> Id nil
+
+touuid2 :: Maybe UUID -> UUID
+touuid2 id = do
+    case id of
+        Just uuid -> uuid
+        Nothing -> nil
+
+data CommentWithReplies = CommentWithReplies
+    { comment :: Comment
+    , replies :: [CommentWithReplies]
+    }
+    deriving (Eq, Show)
