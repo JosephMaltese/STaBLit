@@ -97,7 +97,7 @@ renderDislikeButton postId = [hsx|
 |]
 
 renderReactionButtons postId reactions = [hsx|
-    <form method="POST" action={CreateReactionAction postId}>
+    <form method="POST" action={CreateReactionAction (Just postId) Nothing}>
         <button type="submit" name="emoji" value="😊" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "😊")}</span> 😊</button>
         <button type="submit" name="emoji" value="👍" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "👍")}</span> 👍</button>
         <button type="submit" name="emoji" value="❤️" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "❤️")}</span> ❤️</button>

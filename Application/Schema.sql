@@ -29,8 +29,9 @@ CREATE TABLE users (
 );
 CREATE TABLE reactions (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY NOT NULL,
-    postid UUID NOT NULL,
+    postid UUID DEFAULT NULL,
     userid UUID NOT NULL,
-    emoji TEXT DEFAULT '' NOT NULL
+    emoji TEXT DEFAULT '' NOT NULL,
+    commentid UUID DEFAULT NULL
 );
 ALTER TABLE comments ADD CONSTRAINT comments_ref_post_id FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE NO ACTION;

@@ -1,0 +1,2 @@
+ALTER TABLE reactions ALTER COLUMN postid DROP NOT NULL;
+ALTER TABLE reactions ADD COLUMN commentid UUID DEFAULT null;

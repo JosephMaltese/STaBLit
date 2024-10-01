@@ -37,11 +37,49 @@ instance Controller ReactionsController where
                     redirectTo EditReactionAction { .. }
 
 
-    action CreateReactionAction { postId } = do
+
+
+    action CreateReactionAction { postId, commentId } = do
         let emoji = param "emoji"
         let userId = currentUserId
         let useruuid = getuseruuid userId
+
+        if postId == Nothing then 
+            let commentuuid :: UUID = getcommentuuid (getjustcommentid commentId)
+            existingReaction <- query @Reaction
+                |> filterWhere (#userid, useruuid)
+                |> filterWhere (#commentid, commentuuid)
+                |> fetchOneOrNothing
+        else
+            let postuuid :: UUID = getpostuuid (getjustpostid postId)
+            existingReaction <- query @Reaction
+                |> filterWhere (#userid, useruuid)
+                |> filterWhere (#postid, Just postuuid)
+                |> fetchOneOrNothing
+        
+        case existingReaction of
+            Just reaction -> deleteRecord reaction
+            Nothing -> pure ()
+
+        let newReaction = newRecord @Reaction
+        newReaction
+            |> if postid /= Nothing then set #postid postuuid
+            |> if commentid /= Nothing then set #commentid commentid
+            |> set #emoji emoji
+            |> set #userid useruuid
+            |> createRecord
+            
+        setSuccessMessage "Reaction created"
+        redirectTo PostsAction
+
+    {--
+    action CreateReactionAction { postId, commentId } = do
+        let emoji = param "emoji"
+        let userId = currentUserId
+        let useruuid = getuseruuid userId
+
         let postuuid :: UUID = getpostuuid postId
+        let commentuuid :: UUID = getcommentuuid commentId
 
         existingReaction <- query @Reaction
             |> filterWhere (#userid, useruuid)
@@ -61,6 +99,7 @@ instance Controller ReactionsController where
             
         setSuccessMessage "Reaction created"
         redirectTo PostsAction
+    --}
 
     action DeleteReactionAction { reactionId } = do
         reaction <- fetch reactionId
@@ -83,3 +122,19 @@ getpostuuid :: Id' "posts" -> UUID
 getpostuuid id = do
     case id of
         Id uuid -> uuid
+
+getcommentuuid :: Id' "comments" -> UUID
+getcommentuuid id = do
+    case id of
+        Id uuid -> uuid
+
+
+getjustcommentid :: Maybe Id' "comments" -> Id' "comments"
+getjustcommentid comment = do
+    case comment of
+        Just id -> id
+
+getjustpostid :: Maybe Id' "posts" -> Id' "posts"
+getjustpostid post = do
+    case post of
+        Just id -> id
