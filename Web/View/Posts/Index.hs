@@ -57,7 +57,7 @@ renderPost postwithdetails =
                 </a>
 
                 <div class="emoji-reactions" style="margin-left: 2rem;">
-                    {renderReactionButtons post.id Nothing reactions}
+                    {renderReactionButtons post.id reactions}
                 </div>
 
             </div>
@@ -96,14 +96,27 @@ renderDislikeButton postId = [hsx|
     </form>
 |]
 
-renderReactionButtons postId commentId reactions = [hsx|
-    <form method="POST" action={CreateReactionAction postId commentId}>
+renderReactionButtons postId reactions = [hsx|
+    <form method="POST" action={CreateReactionAction postId }>
         <button type="submit" name="emoji" value="😊" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "😊")}</span> 😊</button>
         <button type="submit" name="emoji" value="👍" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "👍")}</span> 👍</button>
         <button type="submit" name="emoji" value="❤️" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "❤️")}</span> ❤️</button>
         <button type="submit" name="emoji" value="🤣" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "🤣")}</span> 🤣</button>
     </form>
 |]
+
+
+
+{-
+renderCommentReactionButtons commentId reactions = [hsx|
+    <form method="POST" action={CreateReactionAction2 commentId }>
+        <button type="submit" name="emoji" value="😊" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "😊")}</span> 😊</button>
+        <button type="submit" name="emoji" value="👍" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "👍")}</span> 👍</button>
+        <button type="submit" name="emoji" value="❤️" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "❤️")}</span> ❤️</button>
+        <button type="submit" name="emoji" value="🤣" style="background: none; border: none; font-size: 1.5rem; margin-right: 0.5rem;"><span style="font-size: 1rem;">{renderCount (countreactions reactions "🤣")}</span> 🤣</button>
+    </form>
+|]
+-}
 
 
 
@@ -144,11 +157,14 @@ renderComment commentwithreplies =
             <p style="margin-left: 1rem;">{actualcomment.createdAt |> timeAgo}</p>
         </div>
         <p>{actualcomment.body}</p>
-        <form method="POST" action={CreateCommentAction2 (actualcomment.postId) }>
-            <input type="text" style="border-radius: 10px; border-width: 0.1rem; padding: 0.2rem;" name="body" placeholder="Reply..." required />
-            <input type="hidden" name="parentId" value={get #id actualcomment} />
-            <button type="submit" class="btn btn-primary" style="margin-left: 1rem;">Reply</button>
-        </form>
+        <div>
+            <form method="POST" action={CreateCommentAction2 (actualcomment.postId) }>
+                <input type="text" style="border-radius: 10px; border-width: 0.1rem; padding: 0.2rem;" name="body" placeholder="Reply..." required />
+                <input type="hidden" name="parentId" value={get #id actualcomment} />
+                <button type="submit" class="btn btn-primary" style="margin-left: 1rem;">Reply</button>
+            </form>
+            {-- {renderCommentReactionButtons actualcomment.id reactions} --}
+        </div>
         {renderComments (replies commentwithreplies)}
     </div>
 

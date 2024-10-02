@@ -18,7 +18,7 @@ instance Controller PostsController where
             let postid1 = (get #id post)
             let postuuid = getpostuuid postid1
             reactions <- query @Reaction
-                |> filterWhere (#postid, postuuid)
+                |> filterWhere (#postid, Just postuuid)
                 |> fetch
             comments <- query @Comment
                 |> filterWhere (#postId, postid1)
@@ -57,7 +57,6 @@ instance Controller PostsController where
         post
             |> buildPost
             |> set #author currentUser.username
-            --- Optional --- UPDATE: SEEMS TO WORK FOR NOW
             |> set #likecount 0
             |> set #dislikecount 0
             |> set #likes []

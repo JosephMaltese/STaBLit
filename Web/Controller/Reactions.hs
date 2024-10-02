@@ -38,52 +38,16 @@ instance Controller ReactionsController where
 
 
 
-
-    action CreateReactionAction { postId, commentId } = do
-        let emoji = param "emoji"
-        let userId = currentUserId
-        let useruuid = getuseruuid userId
-
-        existingReaction <- case postId of
-            Just id -> query @Reaction
-                |> filterWhere (#userid, useruuid)
-                |> filterWhere (#postid, id)
-                |> fetchOneOrNothing
-            Nothing -> case commentId of
-                Just commentid -> query @Reaction
-                    |> filterWhere (#userid, useruuid)
-                    |> filterWhere (#commentid, commentid)
-                    |> fetchOneOrNothing
-                Nothing -> pure Nothing
-
-        
-        case existingReaction of
-            Just reaction -> deleteRecord reaction
-            Nothing -> pure ()
-
-        let newReaction = newRecord @Reaction
-        newReaction
-            |> set #postId postId
-            |> set #commentId commentId
-            |> set #emoji emoji
-            |> set #userid useruuid
-            |> createRecord
-            
-        setSuccessMessage "Reaction created"
-        redirectTo PostsAction
-
-    {--
-    action CreateReactionAction { postId, commentId } = do
+    action CreateReactionAction { postId } = do
         let emoji = param "emoji"
         let userId = currentUserId
         let useruuid = getuseruuid userId
 
         let postuuid :: UUID = getpostuuid postId
-        let commentuuid :: UUID = getcommentuuid commentId
 
         existingReaction <- query @Reaction
             |> filterWhere (#userid, useruuid)
-            |> filterWhere (#postid, postuuid)
+            |> filterWhere (#postid, Just postuuid)
             |> fetchOneOrNothing
 
         case existingReaction of
@@ -92,14 +56,43 @@ instance Controller ReactionsController where
 
         let newReaction = newRecord @Reaction
         newReaction
-            |> set #postid postuuid
+            |> set #postid (Just postuuid)
             |> set #emoji emoji
             |> set #userid useruuid
             |> createRecord
             
         setSuccessMessage "Reaction created"
         redirectTo PostsAction
-    --}
+    
+
+
+    action CreateReactionAction2 { commentId } = do
+        let emoji = param "emoji"
+        let userId = currentUserId
+        let useruuid = getuseruuid userId
+
+        let commentuuid :: UUID = getcommentuuid commentId
+
+        existingReaction <- query @Reaction
+            |> filterWhere (#userid, useruuid)
+            |> filterWhere (#postid, Just commentuuid)
+            |> fetchOneOrNothing
+
+        case existingReaction of
+            Just reaction -> deleteRecord reaction
+            Nothing -> pure ()
+
+        let newReaction = newRecord @Reaction
+        newReaction
+            |> set #commentid (Just commentuuid)
+            |> set #emoji emoji
+            |> set #userid useruuid
+            |> createRecord
+            
+        setSuccessMessage "Reaction created"
+        redirectTo PostsAction
+
+
 
     action DeleteReactionAction { reactionId } = do
         reaction <- fetch reactionId
@@ -128,18 +121,3 @@ getcommentuuid id = do
     case id of
         Id uuid -> uuid
 
-
-{--
-
-getjustcommentid :: Maybe Id' "comments" -> Id' "comments"
-getjustcommentid comment = do
-    case comment of
-        Just id -> id
-
-getjustpostid :: Maybe Id' "posts" -> Id' "posts"
-getjustpostid post = do
-    case post of
-        Just id -> id
-
-
---}
