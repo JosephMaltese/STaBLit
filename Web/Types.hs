@@ -58,7 +58,7 @@ data ReactionsController
     = ReactionsAction
     | NewReactionAction
     | ShowReactionAction { reactionId :: !(Id Reaction) }
-    | CreateReactionAction { postId :: Maybe (Id Post), commentId :: Maybe (Id Comment) }
+    | CreateReactionAction { postId :: Maybe (Id Post), commentId :: Maybe (Id Comment)}
     | EditReactionAction { reactionId :: !(Id Reaction) }
     | UpdateReactionAction { reactionId :: !(Id Reaction) }
     | DeleteReactionAction { reactionId :: !(Id Reaction) }

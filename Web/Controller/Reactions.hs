@@ -44,18 +44,18 @@ instance Controller ReactionsController where
         let userId = currentUserId
         let useruuid = getuseruuid userId
 
-        if postId == Nothing then 
-            let commentuuid :: UUID = getcommentuuid (getjustcommentid commentId)
-            existingReaction <- query @Reaction
+        existingReaction <- case postId of
+            Just id -> query @Reaction
                 |> filterWhere (#userid, useruuid)
-                |> filterWhere (#commentid, commentuuid)
+                |> filterWhere (#postid, id)
                 |> fetchOneOrNothing
-        else
-            let postuuid :: UUID = getpostuuid (getjustpostid postId)
-            existingReaction <- query @Reaction
-                |> filterWhere (#userid, useruuid)
-                |> filterWhere (#postid, Just postuuid)
-                |> fetchOneOrNothing
+            Nothing -> case commentId of
+                Just commentid -> query @Reaction
+                    |> filterWhere (#userid, useruuid)
+                    |> filterWhere (#commentid, commentid)
+                    |> fetchOneOrNothing
+                Nothing -> pure Nothing
+
         
         case existingReaction of
             Just reaction -> deleteRecord reaction
@@ -63,8 +63,8 @@ instance Controller ReactionsController where
 
         let newReaction = newRecord @Reaction
         newReaction
-            |> if postid /= Nothing then set #postid postuuid
-            |> if commentid /= Nothing then set #commentid commentid
+            |> set #postId postId
+            |> set #commentId commentId
             |> set #emoji emoji
             |> set #userid useruuid
             |> createRecord
@@ -129,6 +129,8 @@ getcommentuuid id = do
         Id uuid -> uuid
 
 
+{--
+
 getjustcommentid :: Maybe Id' "comments" -> Id' "comments"
 getjustcommentid comment = do
     case comment of
@@ -138,3 +140,6 @@ getjustpostid :: Maybe Id' "posts" -> Id' "posts"
 getjustpostid post = do
     case post of
         Just id -> id
+
+
+--}
