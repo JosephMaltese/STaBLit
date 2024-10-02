@@ -69,6 +69,12 @@ instance Controller PostsController where
                     redirectTo PostsAction
 
     action DeletePostAction { postId } = do
+
+        comments <- query @Comment
+            |> filterWhere (#postId, postId)
+            |> fetch
+        forEach comments deleteRecord
+
         post <- fetch postId
         deleteRecord post
         setSuccessMessage "Post deleted"

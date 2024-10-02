@@ -139,7 +139,7 @@ renderComments comments =
     if not (null comments)
     then [hsx| 
         <p style="font-weight: bold;">Replies:</p>
-        <div style="background-color: #B8B8B8; padding: 2rem;">
+        <div style="background-color: #F0F0F0; padding: 2rem;">
             {forEach comments renderComment}
         </div>
 
@@ -151,7 +151,7 @@ renderComment commentwithreplies =
     let actualcomment = comment commentwithreplies
     in
     [hsx| 
-   <div style="margin-left: 2rem; background-color: #F0F0F0; padding: 1rem; margin-bottom: 1rem; width: 95%;">
+   <div style="margin-left: 2rem; background-color: #F0F0F0; padding: 1rem; margin-bottom: 1rem; width: 100%; border-color: black; border-size: 2rem; border-style: solid;">
         <div style="display: flex; flex-direction: row;">
             <p style="font-weight: bold;">{actualcomment.author}</p>
             <p style="margin-left: 1rem;">{actualcomment.createdAt |> timeAgo}</p>
