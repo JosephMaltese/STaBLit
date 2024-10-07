@@ -168,3 +168,11 @@ getpostuuid :: Id' "posts" -> UUID
 getpostuuid id = do
     case id of
         Id uuid -> uuid
+
+getcommentuuid :: Id' "comments" -> UUID
+getcommentuuid id = do
+    case id of
+        Id uuid -> uuid
+
+
+--- Testing!
